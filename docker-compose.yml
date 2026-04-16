@@ -4,7 +4,7 @@ services:
   proxy:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile
     ports:
       - "3000:3000"
     environment:

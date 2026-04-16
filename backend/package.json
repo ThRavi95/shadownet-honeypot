@@ -1,7 +1,7 @@
 {
-  "name": "shadownet-honeypot",
+  "name": "shadownet-backend",
   "version": "1.0.0",
-  "description": "Local ShadowNet honeypot stack with Node.js proxy, Redis, and Cowrie",
+  "description": "ShadowNet backend: proxy + normalization + MITRE mapping",
   "main": "proxy.js",
   "scripts": {
     "start": "node proxy.js"
