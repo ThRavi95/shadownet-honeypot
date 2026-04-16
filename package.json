@@ -1,0 +1,15 @@
+{
+  "name": "shadownet-honeypot",
+  "version": "1.0.0",
+  "description": "Local ShadowNet honeypot stack with Node.js proxy, Redis, and Cowrie",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "axios": "^1.8.4",
+    "express": "^4.21.2",
+    "redis": "^4.7.0"
+  }
+}
