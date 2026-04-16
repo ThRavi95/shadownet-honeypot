@@ -1,14 +1,22 @@
 const express = require("express");
+const path = require("path");
 const redis = require("redis");
 
 const dummyJson = require("./dummy.json");
 const { scoreRequest } = require("../ml-engine/ml");
-const { normalizeProxyRequestEvent } = require("./src/eventNormalizer");
+const {
+  normalizeProxyRequestEvent,
+  normalizeSuricataAlertEvent
+} = require("./src/eventNormalizer");
 const { mapMitreTechniques } = require("./src/mitreMapping");
+const { startSuricataTailer } = require("./src/suricataTailer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379";
+const SURICATA_EVE_PATH =
+  process.env.SURICATA_EVE_PATH ||
+  path.resolve(__dirname, "../sensors/suricata/logs/eve.json");
 
 // Detection thresholds
 const RATE_SUSPICIOUS_THRESHOLD = Number(process.env.RATE_SUSPICIOUS_THRESHOLD || 3);
@@ -25,6 +33,26 @@ async function ensureRedisConnected() {
     await redisClient.connect();
   }
 }
+
+async function handleSuricataAlert(rawEvent) {
+  const normalizedEvent = normalizeSuricataAlertEvent(rawEvent);
+  const techniques = mapMitreTechniques(normalizedEvent, {
+    bruteForceThreshold: BRUTE_FORCE_THRESHOLD
+  });
+
+  console.log(
+    "[suricata.alert]",
+    JSON.stringify({
+      normalizedEvent,
+      mitre: { techniques }
+    })
+  );
+}
+
+startSuricataTailer({
+  evePath: SURICATA_EVE_PATH,
+  onAlert: handleSuricataAlert
+});
 
 app.all("*", async (req, res) => {
   const ipHeader = req.headers["x-forwarded-for"];
@@ -90,5 +118,6 @@ app.all("*", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`ShadowNet proxy listening on port ${PORT}`);
+  console.log(`Watching Suricata eve.json at ${SURICATA_EVE_PATH}`);
 });
 

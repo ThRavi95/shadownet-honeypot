@@ -42,6 +42,22 @@ function mapMitreTechniques(normalizedEvent, { bruteForceThreshold = 5 } = {}) {
     }
   }
 
+  if (source === "suricata" && eventType === "ids.alert") {
+    const isAlert = Boolean(indicators?.isAlert);
+    if (isAlert) {
+      out.push({
+        ...techniques.T1046,
+        evidence: {
+          alertSignature: telemetry?.alertSignature,
+          alertCategory: telemetry?.alertCategory,
+          severity: Number(telemetry?.severity || 0),
+          destPort: Number(normalizedEvent?.network?.destPort || 0),
+          protocol: normalizedEvent?.network?.protocol || "unknown"
+        }
+      });
+    }
+  }
+
   return out;
 }
 

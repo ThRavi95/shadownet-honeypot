@@ -10,9 +10,13 @@ services:
     environment:
       - PORT=3000
       - REDIS_URL=redis://redis:6379
+      - SURICATA_EVE_PATH=/var/log/suricata/eve.json
     depends_on:
       - redis
       - cowrie
+      - suricata
+    volumes:
+      - ./sensors/suricata/logs:/var/log/suricata:ro
 
   redis:
     image: redis:7-alpine
@@ -23,3 +27,17 @@ services:
     image: cowrie/cowrie:latest
     ports:
       - "2222:2222"
+
+  suricata:
+    image: jasonish/suricata:latest
+    network_mode: "host"
+    command:
+      - -i
+      - eth0
+      - -S
+      - /etc/suricata/rules/local.rules
+      - -l
+      - /var/log/suricata
+    volumes:
+      - ./sensors/suricata/logs:/var/log/suricata
+      - ./sensors/suricata/rules:/etc/suricata/rules

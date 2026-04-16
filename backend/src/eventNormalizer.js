@@ -92,8 +92,43 @@ function normalizeCowrieEvent(cowrieEvent, { failedLoginAttemptCount = 0 } = {})
   };
 }
 
+function normalizeSuricataAlertEvent(suricataEvent) {
+  const ev = suricataEvent && typeof suricataEvent === "object" ? suricataEvent : {};
+  const alert = ev.alert && typeof ev.alert === "object" ? ev.alert : {};
+
+  return {
+    schemaVersion: 1,
+    timestamp: toIsoTimestamp(ev.timestamp || Date.now()),
+    source: "suricata",
+    eventType: "ids.alert",
+    actor: {
+      ip: (ev.src_ip || "unknown").toString()
+    },
+    target: {
+      ip: (ev.dest_ip || "unknown").toString()
+    },
+    network: {
+      protocol: (ev.proto || "unknown").toString().toLowerCase(),
+      srcPort: Number(ev.src_port || 0),
+      destPort: Number(ev.dest_port || 0)
+    },
+    telemetry: {
+      alertSignature: (alert.signature || "").toString(),
+      alertCategory: (alert.category || "").toString(),
+      severity: Number(alert.severity || 0),
+      eventType: (ev.event_type || "").toString(),
+      flowId: ev.flow_id || null
+    },
+    indicators: {
+      isAlert: ev.event_type === "alert"
+    },
+    raw: ev
+  };
+}
+
 module.exports = {
   normalizeProxyRequestEvent,
-  normalizeCowrieEvent
+  normalizeCowrieEvent,
+  normalizeSuricataAlertEvent
 };
 
